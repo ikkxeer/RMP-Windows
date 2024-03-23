@@ -121,8 +121,19 @@ if ($MultitoolDecision -eq "1") {
                 }
                  
                 Set-WallPaper -Image $NewPathBackground -Style Fill
-}
-}
+            # Delete wallpaper cache
+            Remove-Item "C:\Users\admin\AppData\Roaming\Microsoft\Windows\Themes\*" -Force -Recurse
+            # Restart explorer to refresh wallpaper
+            Stop-Process -Name explorer -Force
+            Start-Process explorer
+            Start-Sleep -Seconds 2
+            # Close explorer window
+            $a = (New-Object -comObject Shell.Application).Windows() |  ? { $_.FullName -ne $null} |
+            ? { $_.FullName.toLower().Endswith('\explorer.exe') } 
+
+            $a | % {  $_.Quit() }
+            }
+        }
 }
 
 # Function to the main menu
