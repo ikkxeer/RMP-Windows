@@ -39,9 +39,19 @@ Write-Host "1. Change Wallpaper" -ForegroundColor Yellow
 Space
 Write-Host "2. Send Notification" -ForegroundColor Yellow
 Space
-
+Write-Host "3. Create Local User" -ForegroundColor Yellow
+Space
+Write-Host "4. Create Local Group" -ForegroundColor Yellow
+Space
+Write-Host "5. Enable AutoTray in taskbar" -ForegroundColor Yellow
+Space
+Write-Host "6. Enable/Disable Firewall" -ForegroundColor Yellow
+Space
+Write-Host "7. Install apps" -ForegroundColor Yellow
+Space
 $MultitoolDecision = Read-Host "Select option"
 
+# Change Wallpaper
 if ($MultitoolDecision -eq "1") {
     Add-Type -AssemblyName System.Windows.Forms
     Space
@@ -133,11 +143,153 @@ if ($MultitoolDecision -eq "1") {
 
             $a | % {  $_.Quit() }
             }
+}
+# Create a Local User
+elseif ($MultitoolDecision -eq "3") {
+    Clear-Host
+    Write-Host "--- Enter the credentials for the new user below ---" -BackgroundColor Green -ForegroundColor Black
+    Space
+    $LocalUsername = Read-Host "Name for the new user"
+    Space
+    $Password = Read-Host "Password for the new user" -AsSecureString
+    Space
+    $Description = Read-Host "Decsription for the new user"
+    Space
+    Invoke-Command -ComputerName $Hostname -Credential $global:Credentials -ScriptBlock {
+        try {
+            New-LocalUser -Name $Using:LocalUsername -Password $Using:Password -FullName $Using:LocalUsername -Description $Using:Description
+            Add-LocalGroupMember -Group Usuarios -Member $Using:LocalUsername
+            Write-Host "User $Using:LocalUsername has been created successfully!" -ForegroundColor Green
+            Space
+            Pause
         }
+        catch {
+            Write-Host "An error occurred trying to create the user $Using:LocalUsername..." -ForegroundColor Red
+            Space
+            Pause
+        }
+    }
+}
+# Create local Group
+elseif ($MultitoolDecision -eq "4") {
+    Clear-Host
+    Write-Host "--- Enter the credentials for the new group below ---" -BackgroundColor Green -ForegroundColor Black
+    Space
+    $LocalGroupName = Read-Host "Name for the new group"
+    Space
+    $Description = Read-Host "Decsription for the new group"
+    Space
+    Invoke-Command -ComputerName $Hostname -Credential $global:Credentials -ScriptBlock {
+        try {
+            New-LocalGroup -Name $Using:LocalGroupName
+            Write-Host "Group $Using:LocalGroupName has been created successfully!" -ForegroundColor Green
+            Space
+            Pause
+        }
+        catch {
+            Write-Host "An error occurred trying to create the group $Using:LocalGroupName..." -ForegroundColor Red
+            Space
+            Pause
+        }
+    }
+}
+# Enable AutoTray in taskbar
+elseif ($MultitoolDecision -eq "5") {
+    Clear-Host
+    Write-Host "Enabling all icons on the taskbar..." -ForegroundColor Yellow
+    Space
+    Invoke-Command -ComputerName $Hostname -Credential $global:Credentials -ScriptBlock {
+        try {
+            Set-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer EnableAutoTray 0
+            ps explorer | kill
+            Write-Host "All icons will be displayed on the taskbar now!" -ForegroundColor Green
+            Write-Host " "
+            Pause
+        }
+        catch {
+            Write-Host "An error occurred trying to enable all icons on the taskbar..." -ForegroundColor Red
+            Write-Host " "
+            Pause
+        }
+    }
+}
+# Enable OR Disable Firewall
+elseif ($MultitoolDecision -eq "6") {
+    Clear-Host
+    Write-Host "1. Enable" -ForegroundColor Yellow
+    Space
+    Write-Host "2. Disable" -ForegroundColor Yellow
+    Space
+    $FirewallDecision = Read-Host "Write your decision"
+    if ($FirewallDecision -eq "1") {
+        Invoke-Command -ComputerName $Hostname -Credential $global:Credentials -ScriptBlock {
+            Write-Host "Trying to enable all Firewalls..." -ForegroundColor Yellow
+            try {
+                Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True
+                Write-Host "All firewalls have been enabled correctly!" -ForegroundColor Green
+            }
+            catch {
+                Write-Host "An error occurred trying to enable firewalls" -ForegroundColor Red
+            }    
+        }
+    }
+    elseif ($FirewallDecision -eq "2") {
+        Invoke-Command -ComputerName $Hostname -Credential $global:Credentials -ScriptBlock {
+            Write-Host "Trying to disable all Firewalls..." -ForegroundColor Yellow
+            try {
+                Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
+                Write-Host "All firewalls have been disable correctly!" -ForegroundColor Green
+            }
+            catch {
+                Write-Host "An error occurred trying to disable firewalls" -ForegroundColor Red
+            }    }
+        else {
+            Write-Host "Invalid selection..." -ForegroundColor Red
+            Space
+            Pause
+        }    
+        }    
+}
+# Install apps
+elseif ($MultitoolDecision -eq "7") {
+    Clear-Host
+    Write-Host "Checking that winget is installed on the remote pc..." -ForegroundColor Yellow
+    Space
+    Invoke-Command -ComputerName $Hostname -Credential $global:Credentials -ScriptBlock {
+        $VerifyInstall = winget
+        if ($VerifyInstall) {
+            Write-Host "Winget is installed in the remote machine!" -ForegroundColor Green
+            Write-Host " "
+        }
+        else {
+            Write-Host "Winget is not installed in the remote machine..." -ForegroundColor Red
+            Write-Host " "
+            $progressPreference = 'silentlyContinue'
+            Write-Host "Downloading and installing winget..." -ForegroundColor Yellow
+            Write-Host " "
+            if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+                # Download the latest version of winget
+                Invoke-WebRequest -Uri "https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -OutFile "$env:TEMP\Microsoft.DesktopAppInstaller.msixbundle" -UseBasicParsing
+
+                # Install winget
+                Add-AppxPackage -Path "$env:TEMP\Microsoft.DesktopAppInstaller.msixbundle"
+            } else {
+                Write-Output "Winget is already installed..." -ForegroundColor Yellow
+            }
+            Write-Host "Winget has been installed correctlly!" -ForegroundColor Green
+        }
+    }
+    $AppToInstall = Read-Host "Write the name of the app you want to install"
+    Invoke-Command -ComputerName $Hostname -Credential $global:Credentials -ScriptBlock {
+        winget install $Using:AppToInstall --source winget --force --silent --accept-package-agreements --accept-source-agreements
+    }
+    Pause
+}
 }
 
 # Function to the main menu
 function MainMenu {
+    Clear-Host
     Write-Host @"
   _______    ____    ____   _______   
  |_   __ \  |_   \  /   _| |_   __ \  
