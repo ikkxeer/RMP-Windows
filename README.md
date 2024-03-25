@@ -42,4 +42,4 @@ RMP is provided as-is without any warranties. Use it at your own risk. The autho
 This script is licensed under the [CC0 1.0 Universal](LICENSE).
 
 ## Author
-@ikkxeer
+- @ikkxeer
