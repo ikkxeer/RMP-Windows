@@ -5,6 +5,9 @@
 <h1 align="center">RMP (Remote Management PowerShell) Script</h1>
 RMP (Remote Management PowerShell) is a powerful script designed for system administrators to manage remote machines efficiently. With a user-friendly interface and a wide range of features, RMP simplifies various administrative tasks.
 
+## Version
+Current Version: **1.0**
+
 ## Features
 - **Change Wallpaper:** Personalize remote machines by changing wallpapers effortlessly.
 - **Send Notification:** Send important notifications to remote users directly from PowerShell.
@@ -36,13 +39,7 @@ RMP (Remote Management PowerShell) is a powerful script designed for system admi
 RMP is provided as-is without any warranties. Use it at your own risk. The author holds no liability for any damages or issues caused by the use of this script.
 
 ## License
-This script is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+This script is licensed under the [CC0 1.0 Universal](LICENSE).
 
 ## Author
-[Your Name]
-[Your Contact Information]
-
-## Version
-Current Version: 1.0
-
-For more information and updates, visit [RMP GitHub Repository](https://github.com/yourusername/RMP).
+@ikkxeer
