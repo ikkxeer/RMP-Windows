@@ -51,6 +51,9 @@ function MultitoolMenu {
     Space
     Write-Host "7. Install/Uninstall apps" -ForegroundColor Yellow
     Space
+    Write-Host "8. Lock session" -ForegroundColor Yellow
+    Space
+    Write-Host "9. Turn Off Monitor" -ForegroundColor Yellow
     $MultitoolDecision = Read-Host "Select option"
     
     # Change Wallpaper
@@ -149,7 +152,10 @@ function MultitoolMenu {
     elseif ($MultitoolDecision -eq "2") {
         Clear-Host
         $TitleNotify = Read-Host "Write here the title to the notification"
+        Write-Host " "
         $TextNotify = Read-Host "Write here the text to the notification"
+        Write-Host " "
+        Write-Host "Sending notification..." -ForegroundColor Yellow
         Invoke-Command -ComputerName $Hostname -Credential $global:Credentials -ScriptBlock {
         function Show-Notification {
             [cmdletbinding()]
@@ -181,6 +187,9 @@ function MultitoolMenu {
         }
         Show-Notification $Using:TextNotify
     }
+    Write-Host " "
+    Write-Host "The notification has been sent correctly!" -ForegroundColor Green
+    Pause
     }
     # Create a Local User
     elseif ($MultitoolDecision -eq "3") {
@@ -320,6 +329,16 @@ function MultitoolMenu {
             Write-Host "Invalid decision..." -ForegroundColor Red
             Pause
         }
+    }
+    elseif ($MultitoolDecision -eq "8") {
+        Invoke-Command -ComputerName $Hostname -Credential $global:Credentials -ScriptBlock {
+    $command = "Invoke-WmiMethod -Class Win32_Process -Name Create -ArgumentList 'rundll32.exe user32.dll,LockWorkStation'"
+    Register-ScheduledTask -TaskName "Bloquear Pantalla Remota" -Trigger (New-ScheduledTaskTrigger -Once -At (Get-Date).AddSeconds(1)) -Action (New-ScheduledTaskAction -Execute "powershell.exe" -Argument "$command") -RunLevel Highest
+    Start-Sleep -Seconds 2
+    Unregister-ScheduledTask -TaskName "Bloquear Pantalla Remota" -Confirm:$false
+    }
+    }
+    elseif ($MultitoolDecision -eq "9") {
     }
 } while ($true)
 } 
